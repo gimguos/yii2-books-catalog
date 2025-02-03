@@ -6,6 +6,15 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic-console',
     'basePath' => dirname(__DIR__),
+    'controllerMap' => [
+        'migrate' => [
+            'class' => 'yii\console\controllers\MigrateController',
+            'migrationPath' => [
+                '@app/migrations', // Ваши миграции
+                '@yii/rbac/migrations', // Миграции RBAC
+            ],
+        ],
+    ],
     'bootstrap' => ['log'],
     'controllerNamespace' => 'app\commands',
     'aliases' => [
@@ -14,6 +23,9 @@ $config = [
         '@tests' => '@app/tests',
     ],
     'components' => [
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
