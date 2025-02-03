@@ -9,6 +9,7 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\SignupForm;
 
 class SiteController extends Controller
 {
@@ -65,9 +66,30 @@ class SiteController extends Controller
     }
 
     /**
-     * Login action.
-     *
-     * @return Response|string
+     * Действие для регистрации.
+     */
+
+    public function actionSignup()
+    {
+        $model = new SignupForm();
+
+        if ($model->load(Yii::$app->request->post()) && $user = $model->signup()) {
+            // Назначаем роль 'user' новому пользователю
+            $auth = Yii::$app->authManager;
+            $userRole = $auth->getRole('user');
+            $auth->assign($userRole, $user->id);
+
+            Yii::$app->session->setFlash('success', 'Регистрация прошла успешно.');
+            return $this->goHome();
+        }
+
+        return $this->render('signup', [
+            'model' => $model,
+        ]);
+    }
+
+    /**
+     * Действие для входа в систему.
      */
     public function actionLogin()
     {
@@ -76,20 +98,20 @@ class SiteController extends Controller
         }
 
         $model = new LoginForm();
+
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
         }
 
-        $model->password = '';
+        $model->password = ''; // Очистка поля пароля
+
         return $this->render('login', [
             'model' => $model,
         ]);
     }
 
     /**
-     * Logout action.
-     *
-     * @return Response
+     * Действие для выхода из системы.
      */
     public function actionLogout()
     {

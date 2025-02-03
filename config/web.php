@@ -12,6 +12,9 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'someCookieValidationKey',
@@ -42,14 +45,17 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'signup' => 'site/signup',
+                'login' => 'site/login',
+                'logout' => 'site/logout',
+                'subscribe/<author_id:\d+>' => 'subscription/subscribe',
+                'book/create' => 'book/create',
             ],
-        ],
-        */
+        ]
     ],
     'params' => $params,
 ];
