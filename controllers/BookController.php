@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\Author;
 use app\models\Book;
 use app\models\search\BookSearch;
 use Yii;
@@ -83,24 +84,34 @@ class BookController extends Controller
     /**
      * Creates a new Book model.
      * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
+     *
+     * @return mixed
      */
     public function actionCreate()
     {
         $model = new Book();
+        $authors = Author::find()->all();
 
         if ($model->load(Yii::$app->request->post())) {
-            $model->imageFile = UploadedFile::getInstance($model, 'imageFile'); // Загружаем файл
-
+            $file = UploadedFile::getInstance($model, 'cover_image');
+            if ($file) {
+                $model->cover_image = $file;
+            }
             if ($model->upload() && $model->save()) {
+
                 // Сохраняем связи с авторами (многие-ко-многим)
                 $model->saveAuthors(Yii::$app->request->post('Book')['authorIds']);
+                if ($file && $model->savePhoto()) {
+                    Yii::$app->session->setFlash('success', 'Книга успешно создана с фото.');
+                }
+
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         }
 
         return $this->render('create', [
             'model' => $model,
+            'authors' => $authors,
         ]);
     }
 

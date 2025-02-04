@@ -32,6 +32,10 @@ class m250203_081658_create_book_author_tables extends Migration
             'PRIMARY KEY(book_id, author_id)',
         ]);
 
+        // Создаем индексы для ускорения поиска
+        $this->createIndex('idx-book_author-book_id', '{{%book_author}}', 'book_id');
+        $this->createIndex('idx-book_author-author_id', '{{%book_author}}', 'author_id');
+
         // Внешние ключи
         $this->addForeignKey(
             'fk-book_author-book_id',
@@ -54,6 +58,14 @@ class m250203_081658_create_book_author_tables extends Migration
 
     public function safeDown()
     {
+        // Удаляем внешние ключи
+        $this->dropForeignKey('fk-book_author-book_id', '{{%book_author}}');
+        $this->dropForeignKey('fk-book_author-author_id', '{{%book_author}}');
+
+        // Удаляем индексы
+        $this->dropIndex('idx-book_author-book_id', '{{%book_author}}');
+        $this->dropIndex('idx-book_author-author_id', '{{%book_author}}');
+
         $this->dropTable('{{%book_author}}');
         $this->dropTable('{{%book}}');
         $this->dropTable('{{%author}}');

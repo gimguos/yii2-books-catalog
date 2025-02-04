@@ -4,7 +4,6 @@ namespace app\models;
 
 use Yii;
 use yii\db\ActiveRecord;
-use yii\web\UploadedFile;
 
 /**
  * Модель для таблицы "book".
@@ -21,7 +20,6 @@ use yii\web\UploadedFile;
  */
 class Book extends ActiveRecord
 {
-    public $imageFile; // Для загрузки картинки
     public $authorIds; // Временное свойство для хранения выбранных авторов
 
     public static function tableName()
@@ -36,8 +34,7 @@ class Book extends ActiveRecord
             [['year'], 'integer'],
             [['description'], 'string'],
             [['title', 'isbn'], 'string', 'max' => 255],
-            [['cover_image'], 'string', 'max' => 255],
-            [['imageFile'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg'],
+            [['cover_image'], 'file', 'extensions' => 'png, jpg, jpeg'],
         ];
     }
 
@@ -50,31 +47,48 @@ class Book extends ActiveRecord
             'description' => 'Описание',
             'isbn' => 'ISBN',
             'cover_image' => 'Фото обложки',
-            'imageFile' => 'Загрузить обложку',
         ];
     }
 
-    public function upload()
+    /**
+     * Сохранение фотографии книги
+     *
+     * @return bool
+     */
+    public function savePhoto()
     {
-//        todo Должно быть уникальное имя
-        if ($this->validate()) {
+        $uploadPath = Yii::getAlias('@webroot/img/uploads');
 
-            $uploadPath = Yii::getAlias('@webroot/img/uploads');
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0775, true); // Создаем директорию, если её нет
+        }
 
-            if (!is_dir($uploadPath)) {
-                mkdir($uploadPath, 0775, true); // Создаем директорию, если её нет
-            }
+        if ($this->validate(['cover_image'])) {
+            $path = Yii::getAlias('@webroot/img/uploads/' . $this->id . '.' . $this->cover_image->extension);
+            $this->cover_image->saveAs(basename($path));
+            $this->cover_image = basename($path);
 
-            $fileName = $this->imageFile->baseName . '.' . $this->imageFile->extension;
-            $filePath = $uploadPath . '/' . $fileName;
-
-            if ($this->imageFile->saveAs($filePath)) {
-                $this->imageFile = null;
-                $this->cover_image = $fileName; // Сохраняем имя файла в базе данных
-                return true;
-            }
+            return true;
         }
         return false;
+    }
+
+    /**
+     * Получение полного пути к фотографии книги
+     *
+     * @return string|null
+     */
+    public function getPhotoUrl()
+    {
+        if ($this->cover_image) {
+
+            $uploadPath = Yii::getAlias('@webroot/img/uploads/');
+            $filePath = $uploadPath . $this->cover_image;
+
+            if (is_file($filePath))
+                return Yii::getAlias('@web/img/uploads/' . $this->cover_image);
+        }
+        return Yii::getAlias('@web/img/default-image.jpg');
     }
 
     public function saveAuthors($authorIds)
@@ -123,8 +137,9 @@ class Book extends ActiveRecord
         }
     }
 
-    protected function sendSms($phone, $message) // todo Реализовать массовую отправку массива
+    protected function sendSms($phone, $message)
     {
+        // todo Реализовать массовую отправку массива, логирование
         $apiKey = 'XXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZXXXXXXXXXXXXYYYYYYYYYYYYZZZZZZZZ'; // Ключ эмулятора
         $url = "https://smspilot.ru/api.php?send={$message}&to={$phone}&apikey={$apiKey}";
 

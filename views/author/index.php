@@ -18,9 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?php
-        $isUser = Yii::$app->user->can('user');
-
-        if ($isUser) {
+        if (Yii::$app->user->can('manageBooks')) {
             echo Html::a('Создать автора', ['create'], ['class' => 'btn btn-success']);
         }
         ?>

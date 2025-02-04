@@ -16,7 +16,11 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Создать книгу', ['create'], ['class' => 'btn btn-success']) ?>
+        <?php
+        if (Yii::$app->user->can('manageBooks')) {
+            echo Html::a('Создать книгу', ['create'], ['class' => 'btn btn-success']);
+        }
+        ?>
     </p>
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
@@ -28,16 +32,10 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'yii\grid\SerialColumn'],
             [
                 'attribute' => 'cover_image',
+                'label' => 'Фото обложки',
                 'format' => 'html',
-                'label' => 'Изображение',
-                'value' => function ($model) {
-                    // Путь к изображению по умолчанию
-                    $defaultImage = '/img/default-image.jpg';
-                    $uploadPath = Yii::getAlias('@webroot/img/uploads');
-                    $filePath = $uploadPath . '/' . $model->cover_image;
-                    // Проверка на наличие изображения
-                    $imagePath = is_file($filePath) ? '@web/img/uploads/' . $model->cover_image : $defaultImage;
-                    return Html::img($imagePath, ['title' => $model->title, 'style' => 'width:100px; height:100px;']);
+                'value' => function ($data) {
+                    return Html::img($data->getPhotoUrl(), ['width' => '70px']);
                 },
             ],
 //            'id',
